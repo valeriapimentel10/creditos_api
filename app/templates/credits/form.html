@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ "Editar" if credit else "Nuevo" }} Crédito{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h3 class="mb-4">{{ "Editar" if credit else "Nuevo" }} Crédito</h3>
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">ID Cliente</label>
+                        <input type="text" name="client_id" class="form-control"
+                               value="{{ credit.client_id if credit else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Cliente</label>
+                        <input type="text" name="client_name" class="form-control"
+                               value="{{ credit.client_name if credit else '' }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label">Monto ($)</label>
+                            <input type="number" name="amount" step="0.01" class="form-control"
+                                   value="{{ credit.amount if credit else '' }}" required>
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label">Tasa (%)</label>
+                            <input type="number" name="interest" step="0.01" class="form-control"
+                                   value="{{ credit.interest if credit else '' }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Plazo (meses)</label>
+                        <input type="number" name="term_months" class="form-control"
+                               value="{{ credit.term_months if credit else '' }}" required>
+                    </div>
+                    {% if credit %}
+                    <div class="mb-3">
+                        <label class="form-label">Estatus</label>
+                        <select name="status" class="form-select">
+                            {% for s in ["ACTIVO", "VENCIDO", "LIQUIDADO"] %}
+                            <option value="{{ s }}" {{ "selected" if credit.status == s }}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-dark">Guardar</button>
+                        <a href="{{ url_for('web.list_credits') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

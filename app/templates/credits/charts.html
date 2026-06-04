@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Graficas - Creditos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Creditos otorgados por mes</h2>
+    <a href="{{ url_for('web.list_credits') }}" class="btn btn-outline-secondary btn-sm">Volver a lista</a>
+</div>
+
+<div id="errorMsg" class="alert alert-danger d-none"></div>
+<div id="emptyMsg" class="alert alert-info d-none">No hay creditos registrados aun.</div>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Creditos otorgados por mes</div>
+            <div class="card-body" style="position: relative; height: 350px;">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Distribucion por rango de monto</div>
+            <div class="card-body" style="position: relative; height: 350px;">
+                <canvas id="amountChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    fetch("{{ url_for('credits.monthly_stats') }}")
+        .then(r => {
+            if (!r.ok) throw new Error("Error " + r.status + ": " + r.url);
+            return r.json();
+        })
+        .then(data => {
+            if (data.length === 0) {
+                document.getElementById("emptyMsg").classList.remove("d-none");
+                return;
+            }
+
+            const labels = data.map(d => d.month);
+            const totals = data.map(d => d.total);
+
+            new Chart(document.getElementById("monthlyChart"), {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Creditos otorgados",
+                        data: totals,
+                        backgroundColor: "rgba(13, 110, 253, 0.7)",
+                        borderColor: "rgba(13, 110, 253, 1)",
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} credito(s)`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, precision: 0 },
+                            title: { display: true, text: "Total de creditos" }
+                        },
+                        x: {
+                            title: { display: true, text: "Mes" }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => {
+            const el = document.getElementById("errorMsg");
+            el.textContent = "No se pudo cargar la grafica: " + err.message;
+            el.classList.remove("d-none");
+        });
+
+    fetch("{{ url_for('credits.amount_ranges') }}")
+        .then(r => r.json())
+        .then(data => {
+            new Chart(document.getElementById("amountChart"), {
+                type: "pie",
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        data: data.map(d => d.total),
+                        backgroundColor: [
+                            "rgba(13, 110, 253, 0.7)",
+                            "rgba(25, 135, 84, 0.7)",
+                            "rgba(255, 193, 7, 0.7)",
+                            "rgba(220, 53, 69, 0.7)",
+                        ],
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "bottom" },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.label}: ${ctx.parsed} credito(s)`
+                            }
+                        }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

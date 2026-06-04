@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Créditos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Créditos</h3>
+    <a href="{{ url_for('web.new_credit') }}" class="btn btn-dark">+ Nuevo crédito</a>
+</div>
+
+<!-- Filtro por estatus -->
+<div class="mb-3 d-flex gap-2">
+    <a href="{{ url_for('web.list_credits') }}"
+       class="btn btn-sm {{ 'btn-dark' if not status else 'btn-outline-dark' }}">Todos</a>
+    {% for s in ["ACTIVO", "VENCIDO", "LIQUIDADO"] %}
+    <a href="{{ url_for('web.list_credits', status=s) }}"
+       class="btn btn-sm {{ 'btn-dark' if status == s else 'btn-outline-dark' }}">{{ s }}</a>
+    {% endfor %}
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Monto</th>
+                    <th>Tasa</th>
+                    <th>Plazo</th>
+                    <th>Estatus</th>
+                    <th>Fecha</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in credits %}
+                <tr>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.client_name }}</td>
+                    <td>${{ "{:,.2f}".format(c.amount) }}</td>
+                    <td>{{ c.interest }}%</td>
+                    <td>{{ c.term_months }} meses</td>
+                    <td>
+                        <span class="badge
+                            {% if c.status == 'ACTIVO' %}bg-success
+                            {% elif c.status == 'VENCIDO' %}bg-danger
+                            {% else %}bg-secondary{% endif %}">
+                            {{ c.status }}
+                        </span>
+                    </td>
+                    <td>{{ c.created_at.strftime("%Y-%m-%d") }}</td>
+                    <td>
+                        <a href="{{ url_for('web.detail_credit', id=c.id) }}"
+                           class="btn btn-sm btn-outline-dark">Ver</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">Sin créditos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
